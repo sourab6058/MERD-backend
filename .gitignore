@@ -1,0 +1,8 @@
+# Python Files #
+################
+*.pyc
+*.pem
+
+# migrations #
+##################
+migrations/

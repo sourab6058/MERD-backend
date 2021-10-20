@@ -1,0 +1,68 @@
+<html>
+    <h1>DashBoard</h1>
+
+    <form action = "{% url 'filter' %}" method='POST'>
+        {% csrf_token %}
+
+    <label for="nationality">Choose a nationality:</label>
+    <select id="nationality" name='nationality'>
+        <!-- <option value="All">---</option> -->
+        {% for nationality in nationalities %}
+        <option value="{{nationality.id}}">{{nationality.nationality}}</option>
+        {% endfor %}
+    </select>
+
+    </br></br>
+
+    <label for="city">Choose city:</label>
+    <select id="city" name='city'>
+        {% for city in cities %}
+        <option value="{{city.city}}">{{city.city}}</option>
+        {% endfor %}
+    </select>
+
+    </br></br>
+    
+    <label for="zone">Choose a zone:</label>
+    <select id="zone" name='zone'>
+        <!-- <option value="All">---</option> -->
+        {% for zone in zones %}
+        <option value="{{zone.zone}}">{{zone.zone}}</option>
+        {% endfor %}
+    </select>
+    
+    </br></br>
+    
+    <label for="year">Choose year:</label>
+    <select id="year" name='year'>
+        {% for year in years %}
+        <option value="{{year.year}}">{{year.year}}</option>
+        {% endfor %}
+    </select>
+    
+    </br></br>
+    
+    <label for="month">Choose month:</label>
+    <select id="month" name='month'>
+        <option value="All">All</option>
+        {% for month in months %}
+        <option value="{{month.month}}">{{month.month}}</option>
+        {% endfor %}
+    </select>
+
+    </br></br>
+
+    <label for="category">Choose category:</label>
+    <select id="category" name='category'>
+        {% for category in categories %}
+        <option value="{{category.id}}">{{category.category_name}}</option>
+        {% endfor %}
+    </select>
+
+    </br></br>
+
+    <input type = 'submit'>
+
+    </form>
+
+</html>

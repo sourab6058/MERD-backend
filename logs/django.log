@@ -1,0 +1,10 @@
+aman
+aman
+error
+[04/Aug/2020 17:30:31] DEBUG [retail_services: expense_upload: 32] aman
+[04/Aug/2020 17:30:31] ERROR [retail_services: expense_upload: 33] error
+[04/Aug/2020 17:33:03] ERROR [retail_services: household_upload: 218] error in household_upload name 'ataset' is not defined
+[04/Aug/2020 17:34:05] ERROR [retail_services: household_upload: 221] error in household_upload City matching query does not exist.
+[04/Aug/2020 17:34:36] ERROR [retail_services: household_upload: 221] error in household_upload City matching query does not exist.
+[04/Aug/2020 21:30:05] DEBUG [retail_services: expense_upload: 32] aman
+[04/Aug/2020 21:30:05] ERROR [retail_services: expense_upload: 33] error

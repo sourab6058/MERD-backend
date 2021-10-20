@@ -1,0 +1,45 @@
+<html>
+    <h1>DashBoard 2</h1>
+    {% for result in results %}
+    <h1> -------------------------------- </h1>
+    <table>
+        <tr>
+            <td>Zone : </td>
+            <td>{{result.zone}}</td>
+        </tr>
+
+        <tr>
+            <td>Category : </td>
+            <td>{{result.category}}</td>
+        </tr>
+
+        <tr>
+            <td>Nationality : </td>
+            <td>{{result.nationality}}</td>
+        </tr>
+
+        <tr>
+            <td>Year : </td>
+            <td>{{result.year}}</td>
+        </tr>
+
+        <tr>
+            <td>Month : </td>
+            <td>{{result.month}}</td>
+        </tr>
+    </table>
+    
+    <!-- <h4>Zone : {{zone}}</h4>
+
+    <h4>Category : {{category}}</h4>
+
+    <h4>Nationality : {{nationality}}</h4>
+
+    <h4>Year : {{year}}     Month : {{month}}</h4> -->
+
+    <!-- <h4> Total income : {{result.total_income}}</h4> -->
+    <!-- <h4> Category Expense : {{result.category_expense}}</h4> -->
+    <h4> Market Size  : {{result.market_size}}</h4>
+    
+    {% endfor %}
+</html>

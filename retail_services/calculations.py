@@ -24,7 +24,7 @@ from .submodels.subsubcategory_expense import SubSubCategoryExpense
 #     return sorted(workflows, key=lambda d: d["name"])
 # return workflows
 
-def get_nationality_consolidated_category_data(nationality_id, zones, months, years, categories, cities, purchase_mode):
+def get_nationality_consolidated_category_data(nationality_id, zones, months, years, categories, cities, purchase_mode, place_of_purchase):
     print("nation ", cities)
     distinct_data = []
     nationality_data = []
@@ -54,15 +54,31 @@ def get_nationality_consolidated_category_data(nationality_id, zones, months, ye
                                                                                     'city',
                                                                                     'month',
                                                                                     'zone_id'
-                                                                                    ).annotate(total_online=Sum(F('spent_online')*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_category_expense=Sum('category_expense'), nationality_count=Count('nationality')).order_by('zone__zone')
+                                                                                    ).annotate(total_category_expense=Sum('category_expense'), total_online=Sum(F('spent_online')*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_category_expense')-F('total_online'), output_field=models.DecimalField()),
+                                                                                               total_category_expense_incity=Sum(F('category_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('category_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_category_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                               total_category_expense_outcity=ExpressionWrapper(F('total_category_expense')-F('total_category_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                               nationality_count=Count('nationality')).order_by('zone__zone')
                     month_data = []
                     total_market_size = 0
-                    if len(purchase_mode) == 2:
+                    expenditure_mode = 'total_category_expense'
+                    if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                         expenditure_mode = 'total_category_expense'
-                    elif purchase_mode[0] == 'online':
+                    elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                         expenditure_mode = 'total_online'
-                    elif purchase_mode[0] == 'offline':
+                    elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                         expenditure_mode = 'total_offline'
+                    elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                        expenditure_mode = 'total_category_expense_incity'
+                    elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                        expenditure_mode = 'total_category_expense_outcity'
+                    elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                        expenditure_mode = 'total_online_incity'
+                    elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                        expenditure_mode = 'total_online_outcity'
+                    elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                        expenditure_mode = 'total_offline_incity'
+                    elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                        expenditure_mode = 'total_offline_outcity'
                     for expense in zone_category_expense:
                         if expense[expenditure_mode] is not None:
                             try:
@@ -115,7 +131,7 @@ def get_nationality_consolidated_category_data(nationality_id, zones, months, ye
     return year_data
 
 
-def get_nationality_consolidated_subcategory_data(nationality_id, zones, months, years, subcategories, cities, purchase_mode):
+def get_nationality_consolidated_subcategory_data(nationality_id, zones, months, years, subcategories, cities, purchase_mode, place_of_purchase):
     distinct_data = []
 
     categories = []
@@ -152,15 +168,31 @@ def get_nationality_consolidated_subcategory_data(nationality_id, zones, months,
                                                                                            'month',
                                                                                            'year',
                                                                                            'zone_id'
-                                                                                           ).annotate(total_online=Sum(F('spent_online')*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_subcategory_expense=Sum('subcategory_expense'), nationality_count=Count('nationality')).order_by('nationality_id', 'month')
+                                                                                           ).annotate(total_subcategory_expense=Sum('subcategory_expense'), total_online=Sum(F('spent_online')*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_subcategory_expense')-F('total_online'), output_field=models.DecimalField()),
+                                                                                                      total_subcategory_expense_incity=Sum(F('subcategory_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('subcategory_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_subcategory_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                                      total_subcategory_expense_outcity=ExpressionWrapper(F('total_subcategory_expense')-F('total_subcategory_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                                      nationality_count=Count('nationality')).order_by('nationality_id', 'month')
                         month_data = []
                         total_market_size = 0
-                        if len(purchase_mode) == 2:
+                        expenditure_mode = 'total_subcategory_expense'
+                        if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_subcategory_expense'
-                        elif purchase_mode[0] == 'online':
+                        elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_online'
-                        elif purchase_mode[0] == 'offline':
+                        elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_offline'
+                        elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_subcategory_expense_incity'
+                        elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_subcategory_expense_outcity'
+                        elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_online_incity'
+                        elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_online_outcity'
+                        elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_offline_incity'
+                        elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_offline_outcity'
                         for expense in zone_category_expense:
                             if expense[expenditure_mode] is not None:
                                 try:
@@ -209,7 +241,7 @@ def get_nationality_consolidated_subcategory_data(nationality_id, zones, months,
     return year_data
 
 
-def get_nationality_consolidated_subsubcategory_data(nationality_id, zones, months, years, subsubcategories, cities, purchase_mode):
+def get_nationality_consolidated_subsubcategory_data(nationality_id, zones, months, years, subsubcategories, cities, purchase_mode, place_of_purchase):
     distinct_data = []
     categories = []
     subcategories = []
@@ -253,15 +285,31 @@ def get_nationality_consolidated_subsubcategory_data(nationality_id, zones, mont
                                                                                                   'month',
                                                                                                   'year',
                                                                                                   'zone_id'
-                                                                                                  ).annotate(total_online=Sum(F('spent_online')*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_subsubcategory_expense=Sum('subsubcategory_expense'), nationality_count=Count('nationality')).order_by('nationality_id', 'month')
+                                                                                                  ).annotate(total_subsubcategory_expense=Sum('subsubcategory_expense'), total_online=Sum(F('spent_online')*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_subsubcategory_expense')-F('total_online'), output_field=models.DecimalField()),
+                                                                                                             total_subsubcategory_expense_incity=Sum(F('subsubcategory_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('subsubcategory_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_subsubcategory_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                                             total_subsubcategory_expense_outcity=ExpressionWrapper(F('total_subsubcategory_expense')-F('total_subsubcategory_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                                             nationality_count=Count('nationality')).order_by('nationality_id', 'month')
                             month_data = []
                             total_market_size = 0
-                            if len(purchase_mode) == 2:
+                            expenditure_mode = 'total_subsubcategory_expense'
+                            if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                                 expenditure_mode = 'total_subsubcategory_expense'
-                            elif purchase_mode[0] == 'online':
+                            elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                                 expenditure_mode = 'total_online'
-                            elif purchase_mode[0] == 'offline':
+                            elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                                 expenditure_mode = 'total_offline'
+                            elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                                expenditure_mode = 'total_subsubcategory_expense_incity'
+                            elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                                expenditure_mode = 'total_subsubcategory_expense_outcity'
+                            elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                                expenditure_mode = 'total_online_incity'
+                            elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                                expenditure_mode = 'total_online_outcity'
+                            elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                                expenditure_mode = 'total_offline_incity'
+                            elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                                expenditure_mode = 'total_offline_outcity'
                             for expense in zone_category_expense:
                                 if expense[expenditure_mode] is not None:
                                     # try:
@@ -313,7 +361,7 @@ def get_nationality_consolidated_subsubcategory_data(nationality_id, zones, mont
     return year_data
 
 
-def get_zones_consolidated_category_data(nationality_id, zones, months, years, categories, cities, purchase_mode):
+def get_zones_consolidated_category_data(nationality_id, zones, months, years, categories, cities, purchase_mode, place_of_purchase):
     year_data = []
     for year in years:
         city_data = []
@@ -331,17 +379,33 @@ def get_zones_consolidated_category_data(nationality_id, zones, months, years, c
                                                                                             'zone',
                                                                                             'year',
                                                                                             'city__city',
-                                                                                            'category__name').annotate(total_online=Sum(F('spent_online')*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_category_expense=Sum('category_expense'), nationality_count=Count('nationality')).order_by('month')
+                                                                                            'category__name').annotate(total_category_expense=Sum('category_expense'), total_online=Sum(F('spent_online')*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_category_expense')-F('total_online'), output_field=models.DecimalField()),
+                                                                                                                       total_category_expense_incity=Sum(F('category_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('category_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_category_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                                                       total_category_expense_outcity=ExpressionWrapper(F('total_category_expense')-F('total_category_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                                                       nationality_count=Count('nationality')).order_by('month')
 
                 market_size_data = []
                 _month = []
                 total_market_size = 0
-                if len(purchase_mode) == 2:
+                expenditure_mode = 'total_category_expense'
+                if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                     expenditure_mode = 'total_category_expense'
-                elif purchase_mode[0] == 'online':
+                elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                     expenditure_mode = 'total_online'
-                elif purchase_mode[0] == 'offline':
+                elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                     expenditure_mode = 'total_offline'
+                elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                    expenditure_mode = 'total_category_expense_incity'
+                elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                    expenditure_mode = 'total_category_expense_outcity'
+                elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                    expenditure_mode = 'total_online_incity'
+                elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                    expenditure_mode = 'total_online_outcity'
+                elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                    expenditure_mode = 'total_offline_incity'
+                elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                    expenditure_mode = 'total_offline_outcity'
                 for expense in zone_category_expense:
                     if expense[expenditure_mode] is not None:
                         # try:
@@ -383,7 +447,7 @@ def get_zones_consolidated_category_data(nationality_id, zones, months, years, c
     return year_data
 
 
-def get_zones_consolidated_subcategory_data(nationality_id, zones, months, years, subcategories, cities, purchase_mode):
+def get_zones_consolidated_subcategory_data(nationality_id, zones, months, years, subcategories, cities, purchase_mode, place_of_purchase):
     distinct_data = []
     print("zones")
     categories = []
@@ -417,15 +481,31 @@ def get_zones_consolidated_subcategory_data(nationality_id, zones, months, years
                                                                                        'month',
                                                                                        'year',
                                                                                        'zone_id'
-                                                                                       ).annotate(total_online=Sum(F('spent_online')*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_subcategory_expense=Sum('subcategory_expense'), nationality_count=Count('nationality')).order_by('nationality_id', 'month')
+                                                                                       ).annotate(total_subcategory_expense=Sum('subcategory_expense'), total_online=Sum(F('spent_online')*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_subcategory_expense')-F('total_online'), output_field=models.DecimalField()),
+                                                                                                  total_subcategory_expense_incity=Sum(F('subcategory_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('subcategory_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_subcategory_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                                  total_subcategory_expense_outcity=ExpressionWrapper(F('total_subcategory_expense')-F('total_subcategory_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                                  nationality_count=Count('nationality')).order_by('nationality_id', 'month')
                     month_data = []
                     total_market_size = 0
-                    if len(purchase_mode) == 2:
+                    expenditure_mode = 'total_subcategory_expense'
+                    if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                         expenditure_mode = 'total_subcategory_expense'
-                    elif purchase_mode[0] == 'online':
+                    elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                         expenditure_mode = 'total_online'
-                    elif purchase_mode[0] == 'offline':
+                    elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                         expenditure_mode = 'total_offline'
+                    elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                        expenditure_mode = 'total_subcategory_expense_incity'
+                    elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                        expenditure_mode = 'total_subcategory_expense_outcity'
+                    elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                        expenditure_mode = 'total_online_incity'
+                    elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                        expenditure_mode = 'total_online_outcity'
+                    elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                        expenditure_mode = 'total_offline_incity'
+                    elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                        expenditure_mode = 'total_offline_outcity'
                     for expense in zone_category_expense:
                         if expense[expenditure_mode] is not None:
                             try:
@@ -471,7 +551,7 @@ def get_zones_consolidated_subcategory_data(nationality_id, zones, months, years
     return year_data
 
 
-def get_zones_consolidated_subsubcategory_data(nationality_id, zones, months, years, subsubcategories, cities, purchase_mode):
+def get_zones_consolidated_subsubcategory_data(nationality_id, zones, months, years, subsubcategories, cities, purchase_mode, place_of_purchase):
     distinct_data = []
     categories = []
     subcategories = []
@@ -511,15 +591,31 @@ def get_zones_consolidated_subsubcategory_data(nationality_id, zones, months, ye
                                                                                               'month',
                                                                                               'year',
                                                                                               'zone_id'
-                                                                                              ).annotate(total_online=Sum(F('spent_online')*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_subsubcategory_expense=Sum('subsubcategory_expense'), nationality_count=Count('nationality')).order_by('nationality_id', 'month')
+                                                                                              ).annotate(total_subsubcategory_expense=Sum('subsubcategory_expense'), total_online=Sum(F('spent_online')*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_subsubcategory_expense')-F('total_online'), output_field=models.DecimalField()),
+                                                                                                         total_subsubcategory_expense_incity=Sum(F('subsubcategory_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('subsubcategory_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_subsubcategory_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                                         total_subsubcategory_expense_outcity=ExpressionWrapper(F('total_subsubcategory_expense')-F('total_subsubcategory_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                                         nationality_count=Count('nationality')).order_by('nationality_id', 'month')
                         month_data = []
                         total_market_size = 0
-                        if len(purchase_mode) == 2:
+                        expenditure_mode = 'total_subsubcategory_expense'
+                        if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_subsubcategory_expense'
-                        elif purchase_mode[0] == 'online':
+                        elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_online'
-                        elif purchase_mode[0] == 'offline':
+                        elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_offline'
+                        elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_subsubcategory_expense_incity'
+                        elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_subsubcategory_expense_outcity'
+                        elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_online_incity'
+                        elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_online_outcity'
+                        elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_offline_incity'
+                        elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_offline_outcity'
                         for expense in zone_category_expense:
                             if expense[expenditure_mode] is not None:
                                 try:
@@ -569,9 +665,10 @@ def get_zones_consolidated_subsubcategory_data(nationality_id, zones, months, ye
     return year_data
 
 
-def get_category_data(nationality_id, zones, months, years, categories, cities, purchase_mode):
+def get_category_data(nationality_id, zones, months, years, categories, cities, purchase_mode, place_of_purchase):
     distinct_data = []
     nationality_data = []
+    print(place_of_purchase)
 
     year_data = []
     for year in years:
@@ -598,18 +695,36 @@ def get_category_data(nationality_id, zones, months, years, categories, cities, 
                                                                                         'city',
                                                                                         'month',
                                                                                         'zone_id',
-                                                                                        ).annotate(total_online=Sum(F('spent_online')*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('category_expense')*Value(0.01), output_field=models.DecimalField()), nationality_count=Count('nationality'), total_category_expense=Sum('category_expense'))
+                                                                                        ).annotate(total_category_expense=Sum('category_expense'), total_online=Sum(F('spent_online')*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_category_expense') - F('total_online'), output_field=models.DecimalField()),
+                                                                                                   total_category_expense_incity=Sum(F('category_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('category_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_category_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                                   total_category_expense_outcity=ExpressionWrapper(F('total_category_expense')-F('total_category_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                                   nationality_count=Count(
+                                                                                                       'nationality')
+                                                                                                   )
+
+                        print(zone_category_expense)
 
                         month_data = []
                         total_market_size = 0
-                        print(zone_category_expense)
                         expenditure_mode = 'total_category_expense'
-                        if len(purchase_mode) == 2:
+                        if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_category_expense'
-                        elif purchase_mode[0] == 'online':
+                        elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_online'
-                        elif purchase_mode[0] == 'offline':
+                        elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                             expenditure_mode = 'total_offline'
+                        elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_category_expense_incity'
+                        elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_category_expense_outcity'
+                        elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_online_incity'
+                        elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_online_outcity'
+                        elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                            expenditure_mode = 'total_offline_incity'
+                        elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                            expenditure_mode = 'total_offline_outcity'
                         for expense in zone_category_expense:
                             if expense[expenditure_mode] is not None:
                                 try:
@@ -671,7 +786,7 @@ def get_category_data(nationality_id, zones, months, years, categories, cities, 
     return year_data
 
 
-def get_subcategory_data(nationality_id, zones, months, years, subcategories, cities, purchase_mode):
+def get_subcategory_data(nationality_id, zones, months, years, subcategories, cities, purchase_mode, place_of_purchase):
     distinct_data = []
 
     categories = []
@@ -711,15 +826,32 @@ def get_subcategory_data(nationality_id, zones, months, years, subcategories, ci
                                                                                                'month',
                                                                                                'year',
                                                                                                'zone_id'
-                                                                                               ).annotate(total_online=Sum(F('spent_online')*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_subcategory_expense=Sum('subcategory_expense'), nationality_count=Count('nationality')).order_by('nationality_id', 'month')
+                                                                                               ).annotate(total_subcategory_expense=Sum('subcategory_expense'), total_online=Sum(F('spent_online')*F('subcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_subcategory_expense') - F('total_online'), output_field=models.DecimalField()),
+                                                                                                          total_subcategory_expense_incity=Sum(F('subcategory_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('subcategory_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_subcategory_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                                          total_subcategory_expense_outcity=ExpressionWrapper(F('total_subcategory_expense')-F('total_subcategory_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                                          nationality_count=Count(
+                                                                                                   'nationality')).order_by('nationality_id', 'month')
                             month_data = []
                             total_market_size = 0
-                            if len(purchase_mode) == 2:
+                            expenditure_mode = 'total_subcategory_expense'
+                            if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                                 expenditure_mode = 'total_subcategory_expense'
-                            elif purchase_mode[0] == 'online':
+                            elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                                 expenditure_mode = 'total_online'
-                            elif purchase_mode[0] == 'offline':
+                            elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                                 expenditure_mode = 'total_offline'
+                            elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                                expenditure_mode = 'total_subcategory_expense_incity'
+                            elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                                expenditure_mode = 'total_subcategory_expense_outcity'
+                            elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                                expenditure_mode = 'total_online_incity'
+                            elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                                expenditure_mode = 'total_online_outcity'
+                            elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                                expenditure_mode = 'total_offline_incity'
+                            elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                                expenditure_mode = 'total_offline_outcity'
                             for expense in zone_category_expense:
                                 if expense[expenditure_mode] is not None:
                                     try:
@@ -780,7 +912,7 @@ def get_subcategory_data(nationality_id, zones, months, years, subcategories, ci
     return year_data
 
 
-def get_subsubcategory_data(nationality_id, zones, months, years, subsubcategories, cities, purchase_mode):
+def get_subsubcategory_data(nationality_id, zones, months, years, subsubcategories, cities, purchase_mode, place_of_purchase):
     distinct_data = []
     categories = []
     subcategories = []
@@ -826,15 +958,31 @@ def get_subsubcategory_data(nationality_id, zones, months, years, subsubcategori
                                                                                                       'month',
                                                                                                       'year',
                                                                                                       'zone_id'
-                                                                                                      ).annotate(total_online=Sum(F('spent_online')*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=Sum((Value(100)-F('spent_online'))*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_subsubcategory_expense=Sum('subsubcategory_expense'), nationality_count=Count('nationality')).order_by('nationality_id', 'month')
+                                                                                                      ).annotate(total_subsubcategory_expense=Sum('subsubcategory_expense'), total_online=Sum(F('spent_online')*F('subsubcategory_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_subsubcategory_expense') - F('total_online'), output_field=models.DecimalField()),
+                                                                                                                 total_subsubcategory_expense_incity=Sum(F('subsubcategory_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('subsubcategory_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_subsubcategory_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                                                 total_subsubcategory_expense_outcity=ExpressionWrapper(F('total_subsubcategory_expense')-F('total_subsubcategory_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
+                                                                                                                 nationality_count=Count(
+                                                                                                          'nationality')).order_by('nationality_id', 'month')
                                 month_data = []
                                 total_market_size = 0
-                                if len(purchase_mode) == 2:
+                                if len(purchase_mode) == 2 and len(place_of_purchase) == 2:
                                     expenditure_mode = 'total_subsubcategory_expense'
-                                elif purchase_mode[0] == 'online':
+                                elif purchase_mode[0] == 'online' and len(place_of_purchase) == 2:
                                     expenditure_mode = 'total_online'
-                                elif purchase_mode[0] == 'offline':
+                                elif purchase_mode[0] == 'offline' and len(place_of_purchase) == 2:
                                     expenditure_mode = 'total_offline'
+                                elif len(purchase_mode) == 2 and place_of_purchase[0] == 'in':
+                                    expenditure_mode = 'total_subsubcategory_expense_incity'
+                                elif len(purchase_mode) == 2 and place_of_purchase[0] == 'out':
+                                    expenditure_mode = 'total_subsubcategory_expense_outcity'
+                                elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'in':
+                                    expenditure_mode = 'total_online_incity'
+                                elif purchase_mode[0] == 'online' and place_of_purchase[0] == 'out':
+                                    expenditure_mode = 'total_online_outcity'
+                                elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'in':
+                                    expenditure_mode = 'total_offline_incity'
+                                elif purchase_mode[0] == 'offline' and place_of_purchase[0] == 'out':
+                                    expenditure_mode = 'total_offline_outcity'
                                 for expense in zone_category_expense:
                                     if expense[expenditure_mode] is not None:
                                         try:

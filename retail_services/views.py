@@ -72,48 +72,47 @@ class FilterSecond(APIView):
         first_half_year = data.get('first_half_year', None)
         second_half_year = data.get('second_half_year', None)
         purchase_mode = data.get('purchaseMode')
-        print(filter_type)
-        print(purchase_mode)
+        place_of_purchase = data.get('placeOfPurchase')
         results = []
         if filter_type == 'zones':
             if categories != []:
                 results.append(get_zones_consolidated_category_data(
-                    nationality_id, zones, months, years, categories, cities, purchase_mode))
+                    nationality_id, zones, months, years, categories, cities, purchase_mode, place_of_purchase))
 
             if subcategories != []:
                 results.append(get_zones_consolidated_subcategory_data(
-                    nationality_id, zones, months, years, subcategories, cities, purchase_mode))
+                    nationality_id, zones, months, years, subcategories, cities, purchase_mode, place_of_purchase))
 
             if subsubcategories != []:
                 results.append(get_zones_consolidated_subsubcategory_data(
-                    nationality_id, zones, months, years, subsubcategories, cities, purchase_mode))
+                    nationality_id, zones, months, years, subsubcategories, cities, purchase_mode, place_of_purchase))
 
         elif filter_type == 'nationality':
             if categories != []:
                 print("inside")
                 results.append(get_nationality_consolidated_category_data(
-                    nationality_id, zones, months, years, categories, cities, purchase_mode))
+                    nationality_id, zones, months, years, categories, cities, purchase_mode, place_of_purchase))
 
             if subcategories != []:
                 results.append(get_nationality_consolidated_subcategory_data(
-                    nationality_id, zones, months, years, subcategories, cities, purchase_mode))
+                    nationality_id, zones, months, years, subcategories, cities, purchase_mode, place_of_purchase))
 
             if subsubcategories != []:
                 results.append(get_nationality_consolidated_subsubcategory_data(
-                    nationality_id, zones, months, years, subsubcategories, cities, purchase_mode))
+                    nationality_id, zones, months, years, subsubcategories, cities, purchase_mode, place_of_purchase))
 
         elif filter_type == 'distinct':
             if categories != []:
                 results.append(get_category_data(
-                    nationality_id, zones, months, years, categories, cities, purchase_mode))
+                    nationality_id, zones, months, years, categories, cities, purchase_mode, place_of_purchase))
 
             if subcategories != []:
                 results.append(get_subcategory_data(
-                    nationality_id, zones, months, years, subcategories, cities, purchase_mode))
+                    nationality_id, zones, months, years, subcategories, cities, purchase_mode, place_of_purchase))
 
             if subsubcategories != []:
                 results.append(get_subsubcategory_data(
-                    nationality_id, zones, months, years, subsubcategories, cities, purchase_mode))
+                    nationality_id, zones, months, years, subsubcategories, cities, purchase_mode, place_of_purchase))
         # elif button == 'Month':
         #     result = get_month_data(nationality_id, zones, months, year, category_id, city)
 

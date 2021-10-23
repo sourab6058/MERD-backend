@@ -16,6 +16,7 @@ class SubSubCategoryExpense(models.Model):
     subsubcategory_expense = models.DecimalField(
         max_digits=19, decimal_places=3)
     spent_online = models.DecimalField(max_digits=19, decimal_places=3)
+    spent_incity = models.DecimalField(max_digits=19, decimal_places=3)
     year = models.IntegerField()
     month = models.IntegerField()
     monthly_income = models.DecimalField(max_digits=19, decimal_places=3)

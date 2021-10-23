@@ -14,8 +14,10 @@ class SubCategoryExpense(models.Model):
     nationality = models.ForeignKey(
         Nationality, on_delete=models.CASCADE, null=True)
     subcategory_expense = models.DecimalField(max_digits=19, decimal_places=3)
-    spent_online = models.DecimalField(max_digits=19, decimal_places=3)
-    spent_incity = models.DecimalField(max_digits=19, decimal_places=3)
+    spent_online = models.DecimalField(
+        max_digits=19, decimal_places=3, default=3)
+    spent_incity = models.DecimalField(
+        max_digits=19, decimal_places=3, default=70)
     year = models.IntegerField()
     month = models.IntegerField()
     monthly_income = models.DecimalField(max_digits=19, decimal_places=3)

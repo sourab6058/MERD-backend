@@ -8,4 +8,5 @@ urlpatterns = [
 
     path('api/filter', views.FilterSecond.as_view(), name='filter-second'),
     path('demographic_info/', views.DemographicInfo.as_view(), name='demographic'),
+    path('catchments_info/', views.CatchmentsInfo.as_view(), name='catchments'),
 ]

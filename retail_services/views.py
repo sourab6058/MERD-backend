@@ -20,7 +20,7 @@ from .submodels.subsubcategory_expense import SubSubCategoryExpense
 
 from .serializers import ZoneSerializer, CitySerializer, CategorySerializer
 
-from .calculations import get_category_data, get_subcategory_data, get_subsubcategory_data, get_zones_consolidated_category_data, get_zones_consolidated_subcategory_data, get_zones_consolidated_subsubcategory_data, get_nationality_consolidated_category_data, get_nationality_consolidated_subcategory_data, get_nationality_consolidated_subsubcategory_data, get_population_count, get_nationality_distribution, get_income_level, get_category_capita, get_bachelors, get_labourers_percent
+from .calculations import get_category_data, get_subcategory_data, get_subsubcategory_data, get_zones_consolidated_category_data, get_zones_consolidated_subcategory_data, get_zones_consolidated_subsubcategory_data, get_nationality_consolidated_category_data, get_nationality_consolidated_subcategory_data, get_nationality_consolidated_subsubcategory_data, get_population_count, get_nationality_distribution, get_income_level, get_category_capita, get_bachelors, get_labourers_percent, get_malls_data
 # Create your views here.
 
 
@@ -169,3 +169,10 @@ class DemographicInfo(APIView):
                              "capita": capita_data,
                              "bachelors": bachelors_data,
                              "labourers": labourers_data})
+
+
+class CatchmentsInfo(APIView):
+    def get(self, request):
+        malls_data = get_malls_data()
+        return JsonResponse({"data": malls_data})
+        

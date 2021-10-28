@@ -16,6 +16,7 @@ from .submodels.sub_category import SubCategory
 from .submodels.sub_sub_category import SubSubCategory
 from .submodels.subcategory_expense import SubCategoryExpense
 from .submodels.subsubcategory_expense import SubSubCategoryExpense
+from .submodels.mall import Mall
 
 
 # def sort_json(year_data):
@@ -1487,3 +1488,18 @@ def get_labourers_percent(cities, zones, years):
                               "zone_data": labourer_data, })
 
     return city_data
+
+# function to search requested malls data (catchment zones they cover)
+
+
+def get_malls_data():
+    malls = Mall.objects.all()
+    mall_data = []
+    for mall in malls:
+        mall_data.append({
+            "id": mall.id,
+            "name": mall.name,
+            "city": mall.city.id,
+            "zone": mall.zone.id,
+        })
+    return mall_data

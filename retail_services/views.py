@@ -172,7 +172,7 @@ class DemographicInfo(APIView):
 
 
 class CatchmentsInfo(APIView):
-    def get(self, request):
+    def get(self, _):
         malls_data = get_malls_data()
         return JsonResponse({"data": malls_data})
         

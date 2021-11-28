@@ -42,6 +42,7 @@ def expense_upload(request):
         # headers
         header_list = []
         headers = sheet.row(0)
+        print(headers)
         for header_id, header in enumerate(headers):
             header_list.append(
                 {"header_id": header_id, "header": header.value})
@@ -324,6 +325,7 @@ def city_reports(request):
             print(folder+file_url)
             return JsonResponse({"filename": pdf_file.name})
 
+
 @csrf_exempt
 @api_view(['GET', 'POST'])
 def tourist_reports(request):
@@ -359,3 +361,17 @@ def tourist_reports(request):
             file_url = fs.url(filename)
             print(folder+file_url)
             return JsonResponse({"filename": pdf_file.name})
+
+
+@csrf_exempt
+@api_view(['GET', 'POST'])
+def download_brochure(request):
+    folder = "brochure"
+    filename = "brochure.pdf"
+    if request.method == "GET":
+        filepath = os.path.join(settings.MEDIA_ROOT, folder, filename)
+        print(filepath)
+        brochure_doc = open(filepath, 'rb')
+        response = HttpResponse(FileWrapper(
+            brochure_doc), content_type='application/pdf')
+        return response

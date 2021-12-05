@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.db.models import Q
 from django.db import models
 
+
 from .submodels.zone import Zone
 from .submodels.category_expense import CategoryExpense
 from .submodels.user_profile import UserProfile
@@ -1503,3 +1504,25 @@ def get_malls_data():
             "zone": mall.zone.id,
         })
     return mall_data
+
+
+def get_cities_data():
+    cities = City.objects.all()
+    data = []
+    for city in cities:
+        data.append({
+            "id": city.id,
+            "name":city.city
+        })
+    return data
+
+
+def get_categories_data():
+    categories = Category.objects.all()
+    data =[]
+    for category in categories:
+        data.append({
+            "id":category.id,
+            "name":category.name
+        })
+    return data

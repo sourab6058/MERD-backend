@@ -33,6 +33,7 @@ def expense_upload(request):
     if request.method == 'GET':
         return HttpResponse("True")
     if request.method == 'POST':
+        print("POST")
         dataset = Dataset()
         data = request.data
         new_file = data.get('file')
@@ -53,6 +54,9 @@ def expense_upload(request):
                 category_data = []
                 subcategory_data = []
                 subsubcategory_data = []
+                spent_online_category_data = []
+                spent_online_sub_category_data = []
+                spent_online_sub_sub_category_data = []
                 for collid, cell in enumerate(row):
                     if collid == 1:
                         nationality_name = cell.value
@@ -82,9 +86,60 @@ def expense_upload(request):
 
                     for header in header_list:
                         if header['header_id'] == collid:
+                            spent_online_category_header = header['header']
+                            spent_online_categort_in = re.findall(
+                                r'^\bspent_online_category\b', spent_online_category_header, re.IGNORECASE)
+                            if spent_online_categort_in != []:
+                                remove_header_tag = re.compile(
+                                    re.escape('spent_online_category '), re.IGNORECASE)
+                                category_name = remove_header_tag.sub(
+                                    '', spent_online_category_header)
+                                print(category_name)
+                                category_name = category_name.lstrip()
+                                category_name = category_name.rstrip()
+                                category_id = Category.objects.get(
+                                    name__iexact=category_name).id
+                                spent_online_category_data.append(
+                                    {"id": category_id, "spent_online": cell.value})
+
+                            spent_online_sub_category_header = header['header']
+                            spent_online_sub_categort_in = re.findall(
+                                r'^\bspent_online_sub_category\b', spent_online_category_header, re.IGNORECASE)
+                            if spent_online_sub_categort_in != []:
+                                remove_header_tag = re.compile(
+                                    re.escape('spent_online_sub_category '), re.IGNORECASE)
+                                sub_category_name = remove_header_tag.sub(
+                                    '', spent_online_sub_category_header)
+                                print(sub_category_name)
+                                sub_category_name = sub_category_name.lstrip()
+                                sub_category_name = sub_category_name.rstrip()
+                                sub_category_id = SubCategory.objects.get(
+                                    name__iexact=sub_category_name, category_id=category_id).id
+                                spent_online_sub_category_data.append(
+                                    {"id": sub_category_id, "spent_online": cell.value})
+
+                            spent_online_sub_sub_category_header = header['header']
+                            spent_online_sub_sub_categort_in = re.findall(
+                                r'^\bspent_online_sub_sub_category\b', spent_online_category_header, re.IGNORECASE)
+                            if spent_online_sub_sub_categort_in != []:
+                                remove_header_tag = re.compile(
+                                    re.escape('spent_online_sub_sub_category '), re.IGNORECASE)
+                                sub_sub_category_name = remove_header_tag.sub(
+                                    '', spent_online_sub_sub_category_header)
+                                print(sub_sub_category_name)
+                                sub_sub_category_name = sub_sub_category_name.lstrip()
+                                sub_sub_category_name = sub_sub_category_name.rstrip()
+                                sub_sub_category_id = SubSubCategory.objects.get(
+                                    name__iexact=sub_sub_category_name, sub_category_id=sub_category_id).id
+                                spent_online_sub_sub_category_data.append(
+                                    {"id": sub_sub_category_id, "spent_online": cell.value})
+
+                    for header in header_list:
+                        if header['header_id'] == collid:
                             category_header = header['header']
                             category_in = re.findall(
                                 r'\bcategory\b', category_header, re.IGNORECASE)
+
                             category_name = None
                             sub_category_name = None
                             sub_sub_category_name = None
@@ -97,6 +152,9 @@ def expense_upload(request):
                                 category_name = category_name.rstrip()
                                 category_id = Category.objects.get(
                                     name__iexact=category_name).id
+                                category_spent_online = 0
+                                # for header in header_list:
+
                                 category_data.append(
                                     {"id": category_id, "expense": cell.value})
 
@@ -113,7 +171,7 @@ def expense_upload(request):
                                 subcategory = SubCategory.objects.get(
                                     name__iexact=sub_category_name, category_id=category_id)
                                 subcategory_data.append(
-                                    {"id": subcategory.id, "expense": cell.value, "category_id": subcategory.id})
+                                    {"id": subcategory.id, "expense": cell.value, "category_id": category_id})
 
                             sub_sub_category_header = header['header']
                             subsubcategory_in = re.findall(
@@ -131,48 +189,57 @@ def expense_upload(request):
                                     {"id": subsubcategory.id, "expense": cell.value, "subcategory_id": subsubcategory.sub_category_id})
 
                 for category in category_data:
-                    expense = CategoryExpense(
-                        category_expense=category['expense'],
-                        year=year,
-                        month=month,
-                        monthly_income=monthly_income,
-                        category_id=category['id'],
-                        city_id=city_id,
-                        household_members=household_member,
-                        nationality_id=nationality_id,
-                        zone_id=zone_id
-                    )
-                    expense.save()
+                    for category_spent_online in spent_online_category_data:
+                        if category["id"] == category_spent_online["id"]:
+                            expense = CategoryExpense(
+                                category_expense=category['expense'],
+                                spent_online=category_spent_online["spent_online"],
+                                year=year,
+                                month=month,
+                                monthly_income=monthly_income,
+                                category_id=category['id'],
+                                city_id=city_id,
+                                household_members=household_member,
+                                nationality_id=nationality_id,
+                                zone_id=zone_id
+                            )
+                            expense.save()
 
                 for subcategory in subcategory_data:
-                    sub_expense = SubCategoryExpense(
-                        subcategory_expense=subcategory['expense'],
-                        year=year,
-                        month=month,
-                        monthly_income=monthly_income,
-                        sub_category_id=subcategory['id'],
-                        city_id=city_id,
-                        household_members=household_member,
-                        nationality_id=nationality_id,
-                        zone_id=zone_id
-                    )
-
-                    sub_expense.save()
+                    for sub_category_spent_online in spent_online_sub_category_data:
+                        if sub_category_spent_online["id"] == subcategory["id"]:
+                            sub_expense = SubCategoryExpense(
+                                subcategory_expense=subcategory['expense'],
+                                spent_online=sub_category_spent_online["spent_online"],
+                                year=year,
+                                month=month,
+                                monthly_income=monthly_income,
+                                sub_category_id=subcategory['id'],
+                                city_id=city_id,
+                                household_members=household_member,
+                                nationality_id=nationality_id,
+                                zone_id=zone_id
+                            )
+                            sub_expense.save()
 
                 for subsubcategory in subsubcategory_data:
-                    sub_sub_expense = SubSubCategoryExpense(
-                        subsubcategory_expense=subsubcategory['expense'],
-                        year=year,
-                        month=month,
-                        monthly_income=monthly_income,
-                        sub_sub_category_id=subsubcategory['id'],
-                        city_id=city_id,
-                        household_members=household_member,
-                        nationality_id=nationality_id,
-                        zone_id=zone_id
-                    )
-                    sub_sub_expense.save()
+                    for sub_sub_category_spent_online in spent_online_sub_sub_category_data:
+                        if sub_sub_category_spent_online["id"] == subsubcategory["id"]:
+                            sub_sub_expense = SubSubCategoryExpense(
+                                subsubcategory_expense=subsubcategory['expense'],
+                                spent_online=sub_sub_category_spent_online["spent_online"],
+                                year=year,
+                                month=month,
+                                monthly_income=monthly_income,
+                                sub_sub_category_id=subsubcategory['id'],
+                                city_id=city_id,
+                                household_members=household_member,
+                                nationality_id=nationality_id,
+                                zone_id=zone_id
+                            )
+                            sub_sub_expense.save()
             except Exception as e:
+                print(e)
                 error = None
                 if category_name:
                     error = category_name

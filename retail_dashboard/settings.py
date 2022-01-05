@@ -82,9 +82,9 @@ WSGI_APPLICATION = 'retail_dashboard.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
+        'NAME': 'retail_dashboard',
         'USER': 'postgres',
-        'PASSWORD': '12345',
+        'PASSWORD': 'postgres',
         'HOST': 'localhost',
         'PORT': '',
     }

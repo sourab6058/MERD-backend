@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from retail_services.submodels.demographic_table import DemographicTable
 from .submodels.city import City
 from .submodels.zone import Zone
 from .submodels.category import Category
@@ -48,3 +49,10 @@ class MallSerializer(serializers.ModelSerializer):
     class Meta:
         model = Mall
         fields = ('id', 'name', 'zone')
+
+
+class DemographicSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DemographicTable
+        fields = ('id', 'city', 'year', 'nationality',
+                  'type', 'mode', 'file_path')

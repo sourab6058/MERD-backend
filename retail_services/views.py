@@ -1,24 +1,18 @@
-from django.shortcuts import render
-from django.views import View
-from django.http import HttpResponse
-from django.db.models import Sum, Count
+from django.core.files.storage import FileSystemStorage
 from rest_framework.views import APIView
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+import os
+from django.conf import settings
+from django.db.utils import IntegrityError
+from wsgiref.util import FileWrapper
 
-from .submodels.zone import Zone
+
 from .submodels.category_expense import CategoryExpense
-from .submodels.user_profile import UserProfile
-from .submodels.category import Category
-from .submodels.household import Household
-from .submodels.household_nationality import HouseholdNationality
 from .submodels.nationality import Nationality
 from .submodels.city import City
-from .submodels.sub_category import SubCategory
-from .submodels.sub_sub_category import SubSubCategory
-from .submodels.subcategory_expense import SubCategoryExpense
-from .submodels.subsubcategory_expense import SubSubCategoryExpense
+from .submodels.demographic_table import DemographicTable
 
-from .serializers import ZoneSerializer, CitySerializer, CategorySerializer
+from .serializers import CitySerializer, CategorySerializer
 
 from .calculations import get_category_data, get_subcategory_data, get_subsubcategory_data, get_zones_consolidated_category_data, get_zones_consolidated_subcategory_data, get_zones_consolidated_subsubcategory_data, get_nationality_consolidated_category_data, get_nationality_consolidated_subcategory_data, get_nationality_consolidated_subsubcategory_data, get_population_count, get_nationality_distribution, get_income_level, get_category_capita, get_bachelors, get_labourers_percent, get_malls_data, get_cities_data, get_categories_data
 # Create your views here.
@@ -121,13 +115,135 @@ class FilterSecond(APIView):
 
 class DemographicInfo(APIView):
     def get(self, request):
-        data = request.data
-        print("data", data)
-        return JsonResponse({'status': True})
+        folder = "demographic_tables"
+        table_id = request.GET.get("id", "")
+        multiple_tables = request.GET.get("multiple_tables", "")
+        print("multiple_tables", multiple_tables)
+
+        if table_id:
+            try:
+                filepath = DemographicTable.objects.get(id=table_id).file_path
+                print(filepath)
+                excel_file = open(filepath, 'rb')
+                response = HttpResponse(FileWrapper(
+                    excel_file), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                return response
+            except:
+                return JsonResponse({"Error": "File does not exist"})
+        elif multiple_tables:
+            cities = request.GET.get("cities")
+            print(cities)
+            return JsonResponse({"cities": cities})
+        else:
+            excel_file_names = os.listdir(folder)
+            print(excel_file_names)
+            excel_files = []
+
+            for file in excel_file_names:
+                path = os.path.join(settings.MEDIA_ROOT, folder, file)
+                id = DemographicTable.objects.get(file_path=path).id
+                excel_files.append({"id": id, "file": file})
+
+            return JsonResponse({"excel_files": excel_files})
 
     def post(self, request):
+        folder = "demographic_tables"
         data = request.data
-        print("data ", data)
+        if len(data) == 1:
+            file_ids = data.get("files")
+            for id in file_ids:
+                dt = DemographicTable.objects.get(id=id)
+                file_path = dt.file_path
+                os.remove(file_path)
+                dt.delete()
+            return JsonResponse({"filesDeleted": data.get("files")})
+
+        try:
+
+            print(data)
+            cities = data.get("cities")
+            years = data.get("years")
+            nationalities = data.get("nationalities")
+            types = data.get("types")
+            modes = data.get("displayModes")
+
+            tables = []
+
+            for city in cities:
+                for year in years:
+                    for nationality in nationalities:
+                        for type in types:
+                            for mode in modes:
+                                try:
+                                    dt = DemographicTable.objects.get(
+                                        city_id=city, year=year, nationality_id=nationality, type=type, mode=mode).id
+                                    tables.append({
+                                        "city": city,
+                                        "year": year,
+                                        "nationality": nationality,
+                                        "type": type,
+                                        "mode": mode,
+                                        "table_id": dt,
+                                        "message": "This is just id not table"
+                                    })
+                                except:
+                                    tables.append({
+                                        "city": city,
+                                        "year": year,
+                                        "nationality": nationality,
+                                        "type": type,
+                                        "mode": mode,
+                                        "table_id": None,
+                                        "message": "No table with above attributes exists"
+                                    })
+                                    print("table for", city, year, nationality,
+                                          type, mode, "does not exist")
+
+            return JsonResponse({
+                "data": tables
+            })
+        except:
+            print("No multiple tables were asked")
+            JsonResponse({"message": "No multiple tables were asked"})
+
+        try:
+            print("data ", data)
+            city = int(data.get("city"))
+            year = int(data.get("year"))
+            nationality = int(data.get("nationality"))
+            type = data.get("type")
+            mode = data.get("mode")
+            file = data.get("file")
+
+            filename = f"{city}_{year}_{nationality}_{type}_{mode}.xlsx"
+            try:
+                dt = DemographicTable(
+                    city_id=city,
+                    year=year,
+                    nationality_id=nationality,
+                    type=type,
+                    mode=mode,
+                    file_path=os.path.join(
+                        settings.MEDIA_ROOT, folder, filename)
+                )
+                dt.save()
+
+                fs = FileSystemStorage(location=folder)
+
+                fs.save(filename, file)
+                file_url = fs.url(filename)
+                print(folder+file_url)
+
+                return JsonResponse({
+                    'id': dt.id,
+                    'file': filename
+                })
+            except IntegrityError:
+                print("Error in uploading file")
+                return JsonResponse({"Error": "File already exists in backend"})
+        except:
+            print("No file uploading asked")
+            return JsonResponse({"msg": "No file uploading asked"})
         cities = data.get('cities')
         zones = data.get('zones')
         years = data.get('years')

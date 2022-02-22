@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings

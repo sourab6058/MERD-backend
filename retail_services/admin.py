@@ -13,6 +13,7 @@ from .submodels.subcategory_expense import SubCategoryExpense
 from .submodels.subsubcategory_expense import SubSubCategoryExpense
 from .submodels.city import City
 from .submodels.mall import Mall
+from .submodels.demographic_table import DemographicTable
 
 #from .resource import ZoneResource
 from import_export.admin import ImportExportModelAdmin

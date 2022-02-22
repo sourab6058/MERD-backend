@@ -10,6 +10,7 @@ from wsgiref.util import FileWrapper
 from .submodels.category_expense import CategoryExpense
 from .submodels.nationality import Nationality
 from .submodels.city import City
+from .submodels.category import Category
 from .submodels.demographic_table import DemographicTable
 
 from .serializers import CitySerializer, CategorySerializer

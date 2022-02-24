@@ -163,42 +163,34 @@ class DemographicInfo(APIView):
 
             print(data)
             cities = data.get("cities")
-            years = data.get("years")
-            nationalities = data.get("nationalities")
             types = data.get("types")
             modes = data.get("displayModes")
 
             tables = []
 
             for city in cities:
-                for year in years:
-                    for nationality in nationalities:
-                        for type in types:
-                            for mode in modes:
-                                try:
-                                    dt = DemographicTable.objects.get(
-                                        city_id=city, year=year, nationality_id=nationality, type=type, mode=mode).id
-                                    tables.append({
-                                        "city": city,
-                                        "year": year,
-                                        "nationality": nationality,
-                                        "type": type,
-                                        "mode": mode,
-                                        "table_id": dt,
-                                        "message": "This is just id not table"
-                                    })
-                                except:
-                                    tables.append({
-                                        "city": city,
-                                        "year": year,
-                                        "nationality": nationality,
-                                        "type": type,
-                                        "mode": mode,
-                                        "table_id": None,
-                                        "message": "No table with above attributes exists"
-                                    })
-                                    print("table for", city, year, nationality,
-                                          type, mode, "does not exist")
+                for type in types:
+                    for mode in modes:
+                        try:
+                            dt = DemographicTable.objects.get(
+                                city_id=city, type=type, mode=mode).id
+                            tables.append({
+                                "city": city,
+                                "type": type,
+                                "mode": mode,
+                                "table_id": dt,
+                                "message": "This is just id not table"
+                            })
+                        except:
+                            tables.append({
+                                "city": city,
+                                "type": type,
+                                "mode": mode,
+                                "table_id": None,
+                                "message": "No table with above attributes exists"
+                            })
+                            print("table for", city,
+                                  type, mode, "does not exist")
 
             return JsonResponse({
                 "data": tables
@@ -210,18 +202,14 @@ class DemographicInfo(APIView):
         try:
             print("data ", data)
             city = int(data.get("city"))
-            year = int(data.get("year"))
-            nationality = int(data.get("nationality"))
             type = data.get("type")
             mode = data.get("mode")
             file = data.get("file")
 
-            filename = f"{city}_{year}_{nationality}_{type}_{mode}.xlsx"
+            filename = f"{city}_{type}_{mode}.xlsx"
             try:
                 dt = DemographicTable(
                     city_id=city,
-                    year=year,
-                    nationality_id=nationality,
                     type=type,
                     mode=mode,
                     file_path=os.path.join(

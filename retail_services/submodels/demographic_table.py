@@ -6,9 +6,6 @@ from .nationality import Nationality
 
 class DemographicTable(models.Model):
     city = models.ForeignKey(City, on_delete=models.CASCADE, null=True)
-    year = models.IntegerField()
-    nationality = models.ForeignKey(
-        Nationality, on_delete=models.CASCADE, null=True)
     type = models.CharField(max_length=100, null=False)
     mode = models.CharField(max_length=100, null=False)
     file_path = models.CharField(max_length=100, null=False, unique=True)

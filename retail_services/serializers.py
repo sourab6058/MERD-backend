@@ -54,5 +54,5 @@ class MallSerializer(serializers.ModelSerializer):
 class DemographicSerializer(serializers.ModelSerializer):
     class Meta:
         model = DemographicTable
-        fields = ('id', 'city', 'year', 'nationality',
+        fields = ('id', 'city',
                   'type', 'mode', 'file_path')

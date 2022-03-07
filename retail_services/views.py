@@ -269,7 +269,7 @@ class DemographicInfo(APIView):
             labourers_data = get_labourers_percent(cities, zones, years)
 
         return JsonResponse({"population": result,
-                            "nationality_distribution": nationality_distribution_data,
+                             "nationality_distribution": nationality_distribution_data,
                              "income_check": income_level,
                              "capita": capita_data,
                              "bachelors": bachelors_data,
@@ -280,6 +280,41 @@ class CatchmentsInfo(APIView):
     def get(self, _):
         malls_data = get_malls_data()
         return JsonResponse({"data": malls_data})
+
+
+class MallsInfo(APIView):
+
+    def get(self, request):
+        mallMap = request.GET.get("mall-map")
+        if mallMap:
+            print(mallMap)
+            return JsonResponse({"msg": f"Map asked is {mallMap}"})
+        malls = []
+        malls_data = get_malls_data()
+        for mall in malls_data:
+            if mall["name"] not in malls:
+                malls.append(mall["name"])
+
+        return JsonResponse({"malls": malls})
+
+    def post(self, request):
+        folder = "maps"
+        data = request.data
+        print("data ", data)
+        mall = data.get("mall")
+        file = data.get("file")
+
+        filename = f"{mall}.pdf"
+
+        fs = FileSystemStorage(location=folder)
+
+        fs.save(filename, file)
+        file_url = fs.url(filename)
+        print(folder+file_url)
+
+        return JsonResponse({
+            'file': filename
+        })
 
 
 class Cities(APIView):

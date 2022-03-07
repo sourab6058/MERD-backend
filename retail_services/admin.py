@@ -13,7 +13,7 @@ from .submodels.subcategory_expense import SubCategoryExpense
 from .submodels.subsubcategory_expense import SubSubCategoryExpense
 from .submodels.city import City
 from .submodels.mall import Mall
-from .submodels.demographic_table import DemographicTable
+from .submodels.country import Country
 
 #from .resource import ZoneResource
 from import_export.admin import ImportExportModelAdmin
@@ -119,7 +119,7 @@ admin.site.register(SubSubCategoryExpense, SubSubCategoryExpenseAdmin)
 
 
 class CityAdmin(admin.ModelAdmin):
-    list_display = ('id', 'city')
+    list_display = ('id', 'city', "country")
 
 
 admin.site.register(City, CityAdmin)
@@ -130,3 +130,10 @@ class MallAdmin(ImportExportModelAdmin):
 
 
 admin.site.register(Mall, MallAdmin)
+
+
+class CountryAdmin(ImportExportModelAdmin):
+    list_display = ('id', 'country', )
+
+
+admin.site.register(Country, CountryAdmin)

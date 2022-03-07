@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from retail_services.submodels.country import Country
 from retail_services.submodels.demographic_table import DemographicTable
 from .submodels.city import City
 from .submodels.zone import Zone
@@ -14,12 +15,19 @@ class ZoneSerializer(serializers.ModelSerializer):
         fields = ("id", "zone")
 
 
+class CountrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Country
+        fields = ('id', 'country')
+
+
 class CitySerializer(serializers.ModelSerializer):
     zone = ZoneSerializer(source="city_name", many=True)
+    country = CountrySerializer()
 
     class Meta:
         model = City
-        fields = ("id", "city", 'zone')
+        fields = ("id", 'country', "city", 'zone')
 
 
 class SubSubCategorySerializer(serializers.ModelSerializer):

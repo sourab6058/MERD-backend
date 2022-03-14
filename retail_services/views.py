@@ -283,12 +283,27 @@ class CatchmentsInfo(APIView):
 
 
 class MallsInfo(APIView):
+    folder = "maps"
 
     def get(self, request):
-        mallMap = request.GET.get("mall-map")
-        if mallMap:
-            print(mallMap)
-            return JsonResponse({"msg": f"Map asked is {mallMap}"})
+        mall_map = request.GET.get("mall_map")
+        files = request.GET.get("files")
+        if mall_map:
+            try:
+                filename = f"{mall_map}.pdf"
+                filepath = os.path.join(
+                    settings.MEDIA_ROOT, self.folder, filename)
+                excel_file = open(filepath, 'rb')
+                response = HttpResponse(FileWrapper(
+                    excel_file), content_type='application/pdf')
+                return response
+            except:
+                return JsonResponse({"Error": "No Such Map exists"})
+        if files:
+            print("files asked")
+            mall_file_names = os.listdir(self.folder)
+            print(mall_file_names)
+            return JsonResponse({"files": mall_file_names})
         malls = []
         malls_data = get_malls_data()
         for mall in malls_data:
@@ -298,23 +313,31 @@ class MallsInfo(APIView):
         return JsonResponse({"malls": malls})
 
     def post(self, request):
-        folder = "maps"
         data = request.data
         print("data ", data)
+
+        files = data.get("files")
+
+        if files:
+            for file in files:
+                file_path = os.path.join(self.folder, file)
+                os.remove(file_path)
+            return JsonResponse({"files": files})
+
         mall = data.get("mall")
         file = data.get("file")
 
         filename = f"{mall}.pdf"
 
-        fs = FileSystemStorage(location=folder)
+        fs = FileSystemStorage(location=self.folder)
 
         fs.save(filename, file)
         file_url = fs.url(filename)
-        print(folder+file_url)
+        print(self.folder+file_url)
 
-        return JsonResponse({
-            'file': filename
-        })
+        mall_file_names = os.listdir(self.folder)
+        print(mall_file_names)
+        return JsonResponse({"files": mall_file_names})
 
 
 class Cities(APIView):

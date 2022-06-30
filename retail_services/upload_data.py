@@ -1,3 +1,5 @@
+import itertools
+from django.forms import model_to_dict
 from django.http import JsonResponse
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -504,3 +506,57 @@ def download_brochure(request):
         response = HttpResponse(FileWrapper(
             brochure_doc), content_type='application/pdf')
         return response
+
+
+@csrf_exempt
+@api_view(['GET', 'POST'])
+def delete_census(request):
+    print(request.data)
+    cities = request.data["cities"]
+    zones = request.data["zones"]
+    years = request.data["years"]
+    months = request.data["months"]
+    categories = request.data["categories"]
+    subCategories = request.data["subCategories"]
+    subSubCategories = request.data["subSubCategories"]
+    nationalities = request.data["nationalities"]
+    delete_args = {}
+    if len(cities) > 0:
+        delete_args['city_id__in'] = cities
+    if len(zones) > 0:
+        delete_args['zone__in'] = zones
+    if len(years) > 0:
+        delete_args['year__in'] = years
+    if len(months) > 0:
+        delete_args['month__in'] = months
+    if len(nationalities) > 0:
+        delete_args['nationality__in'] = nationalities
+
+    cat_expenses = []
+    sub_cat_expenses = []
+    sub_sub_cat_expenses = []
+    if len(categories) > 0:
+        cat_expenses = CategoryExpense.objects.filter(
+            **delete_args, category__in=categories)
+        cat_expenses.delete()
+
+    if len(subCategories) > 0:
+        sub_cat_expenses = SubCategoryExpense.objects.filter(
+            **delete_args, sub_category__in=subCategories)
+        sub_cat_expenses.delete()
+    if len(subSubCategories) > 0:
+        sub_sub_cat_expenses = SubSubCategoryExpense.objects.filter(
+            **delete_args, sub_sub_category__in=subSubCategories)
+        sub_sub_cat_expenses.delete()
+    if len(categories) == 0 and len(subCategories) == 0 and len(subSubCategories) == 0:
+        cat_expenses = CategoryExpense.objects.filter(
+            **delete_args)
+        cat_expenses.delete()
+        sub_cat_expenses = SubCategoryExpense.objects.filter(
+            **delete_args)
+        sub_cat_expenses.delete()
+        sub_sub_cat_expenses = SubSubCategoryExpense.objects.filter(
+            **delete_args)
+        sub_sub_cat_expenses.delete()
+
+    return JsonResponse({"data": "success"})

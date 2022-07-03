@@ -51,7 +51,7 @@ admin.site.register(Zone, ZoneAdmin)
 
 class CategoryExpenseAdmin(ImportExportModelAdmin):
     list_display = ('id', 'category_expense', 'monthly_income',
-                    'year', 'month', 'nationality', 'category', 'zone')
+                    'year', 'month', 'nationality', 'category', 'city', 'zone')
 
 
 admin.site.register(CategoryExpense, CategoryExpenseAdmin)
@@ -81,7 +81,7 @@ admin.site.register(HouseholdNationality, HouseholdNationalityAdmin)
 
 class SubCategoryExpenseAdmin(ImportExportModelAdmin):
     list_display = ('id', 'subcategory_expense', 'monthly_income',
-                    'year', 'month', 'nationality', 'sub_category')
+                    'year', 'month', 'nationality', 'city', 'zone', 'sub_category')
 
 
 admin.site.register(SubCategoryExpense, SubCategoryExpenseAdmin)
@@ -112,7 +112,7 @@ admin.site.register(SubSubCategory, SubSubCategoryAdmin)
 
 class SubSubCategoryExpenseAdmin(admin.ModelAdmin):
     list_display = ('id', 'subsubcategory_expense', 'monthly_income',
-                    'year', 'month', 'nationality', 'sub_sub_category')
+                    'year', 'month', 'nationality', 'city', 'zone', 'sub_sub_category')
 
 
 admin.site.register(SubSubCategoryExpense, SubSubCategoryExpenseAdmin)

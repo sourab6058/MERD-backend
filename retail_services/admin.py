@@ -118,7 +118,7 @@ class SubSubCategoryExpenseAdmin(admin.ModelAdmin):
 admin.site.register(SubSubCategoryExpense, SubSubCategoryExpenseAdmin)
 
 
-class CityAdmin(admin.ModelAdmin):
+class CityAdmin(ImportExportModelAdmin):
     list_display = ('id', 'city', "country")
 
 

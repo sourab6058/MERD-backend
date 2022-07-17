@@ -6,6 +6,8 @@ from django.conf import settings
 from django.db.utils import IntegrityError
 from wsgiref.util import FileWrapper
 
+from retail_services.upload_data import read_date
+
 
 from .submodels.category_expense import CategoryExpense
 from .submodels.nationality import Nationality
@@ -43,12 +45,15 @@ class FilterSecond(APIView):
 
         cities = City.objects.all().order_by('city')
 
+        lastupdate = read_date()
+
         filter_list = []
         filter_list.append({"years": _years,
                             "months": _months,
                             "nationality": _nationalities,
                             "categories": CategorySerializer(categories, many=True).data,
                             "cities": CitySerializer(cities, many=True).data,
+                            "date": lastupdate
                             })
 
         return JsonResponse({"filters": filter_list})

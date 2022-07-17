@@ -1,8 +1,9 @@
 from django.db.models import Sum, Count, F, Value, ExpressionWrapper
-from django.views import View
-from django.http import HttpResponse
+from datetime import datetime
 from django.db.models import Q
 from django.db import models
+import os
+from django.conf import settings
 
 
 from .submodels.zone import Zone
@@ -1512,17 +1513,31 @@ def get_cities_data():
     for city in cities:
         data.append({
             "id": city.id,
-            "name":city.city
+            "name": city.city
         })
     return data
 
 
 def get_categories_data():
     categories = Category.objects.all()
-    data =[]
+    data = []
     for category in categories:
         data.append({
-            "id":category.id,
-            "name":category.name
+            "id": category.id,
+            "name": category.name
         })
     return data
+
+
+def update_date():
+    with open(os.path.join(settings.MEDIA_ROOT, "lastupdate.txt"), "w") as f:
+        tmstmp = datetime.now().timestamp()
+        f.write(str(tmstmp))
+        return tmstmp
+
+
+def read_date():
+    with open(os.path.join(settings.MEDIA_ROOT, "lastupdate.txt"), "r") as f:
+        print(f.read())
+        f.seek(0)
+        return f.read()

@@ -14,6 +14,8 @@ from tablib import Dataset
 import re
 import os
 
+from retail_services.calculations import read_date, update_date
+
 from .submodels.category_expense import CategoryExpense
 from .submodels.user_profile import UserProfile
 from .submodels.category import Category
@@ -510,7 +512,7 @@ def download_brochure(request):
 
 @csrf_exempt
 @api_view(['GET', 'POST'])
-def delete_census(request):
+def delete_survey(request):
     print(request.data)
     cities = request.data["cities"]
     zones = request.data["zones"]
@@ -560,3 +562,44 @@ def delete_census(request):
         sub_sub_cat_expenses.delete()
 
     return JsonResponse({"data": "success"})
+
+
+@csrf_exempt
+@api_view(['GET', 'POST'])
+def delete_census(request):
+    cities = request.data["cities"]
+    zones = request.data["zones"]
+    categories = request.data["categories"]
+    subCategories = request.data["subCategories"]
+    subSubCategories = request.data["subSubCategories"]
+    nationalities = request.data["nationalities"]
+    for zone in zones:
+        zone_data = Zone.objects.get(pk=zone)
+        zone_data.delete()
+    for nationality in nationalities:
+        nat_data = Nationality.objects.get(pk=nationality)
+        nat_data.delete()
+    for city in cities:
+        city_data = City.objects.get(pk=city)
+        city_data.delete()
+
+    for category in categories:
+        cat_data = Category.objects.get(pk=category)
+        cat_data.delete()
+
+    for subcat in subCategories:
+        subcat_data = SubCategory.objects.get(pk=subcat)
+        subcat_data.delete()
+
+    for subsubcat in subSubCategories:
+        subsubcat_data = SubSubCategory.objects.get(pk=subsubcat)
+        subsubcat_data.delete()
+
+    tmpstmp = update_date()
+
+    return JsonResponse({"data": "success", "date": tmpstmp})
+
+
+def get_lastupdate(_):
+    tmstmp = read_date()
+    return JsonResponse({"lastupdate": tmstmp})

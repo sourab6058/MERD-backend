@@ -353,7 +353,7 @@ def household_upload(request):
                     city = City.objects.get(city__iexact=city)
                     print("city ", city.city)
                 if collid == 1:  # zone
-                    zone = str(int(cell.value))
+                    zone = str(cell.value)
                     print("zone ", zone)
                     zone_id = Zone.objects.get(zone=zone, city=city).id
                 if collid == 2:  # year

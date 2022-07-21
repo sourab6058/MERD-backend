@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.db import models
 import os
 from django.conf import settings
+from django.forms import DecimalField
 
 
 from .submodels.zone import Zone
@@ -698,14 +699,14 @@ def get_category_data(nationality_id, zones, months, years, categories, cities, 
                                                                                         'city',
                                                                                         'month',
                                                                                         'zone_id',
-                                                                                        ).annotate(total_category_expense=Sum('category_expense'), total_online=Sum(F('spent_online')*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_category_expense') - F('total_online'), output_field=models.DecimalField()),
-                                                                                                   total_category_expense_incity=Sum(F('category_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('category_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_category_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
+                                                                                        ).annotate(total_category_expense=Sum('category_expense',  output_field=models.DecimalField()), total_online=Sum(F('spent_online')*F('category_expense')*Value(0.01), output_field=models.DecimalField()), total_offline=ExpressionWrapper(F('total_category_expense') - F('total_online'), output_field=models.DecimalField()),
+                                                                                                   total_category_expense_incity=Sum(F('category_expense')*F('spent_incity')*Value(0.01), output_field=models.DecimalField()), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('category_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_category_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
                                                                                                    total_category_expense_outcity=ExpressionWrapper(F('total_category_expense')-F('total_category_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
                                                                                                    nationality_count=Count(
-                                                                                                       'nationality')
+                                                                                                       'nationality', output_field=models.DecimalField())
                                                                                                    )
 
-                        print(zone_category_expense)
+                        print(list(zone_category_expense))
 
                         month_data = []
                         total_market_size = 0
@@ -833,7 +834,7 @@ def get_subcategory_data(nationality_id, zones, months, years, subcategories, ci
                                                                                                           total_subcategory_expense_incity=Sum(F('subcategory_expense')*F('spent_incity')*Value(0.01)), total_online_incity=Sum(F('spent_online')*F('spent_incity')*F('subcategory_expense')*Value(0.0001), output_field=models.DecimalField()), total_offline_incity=ExpressionWrapper(F('total_subcategory_expense_incity')-F('total_online_incity'), output_field=models.DecimalField()),
                                                                                                           total_subcategory_expense_outcity=ExpressionWrapper(F('total_subcategory_expense')-F('total_subcategory_expense_incity'), output_field=models.DecimalField()), total_online_outcity=ExpressionWrapper(F('total_online')-F('total_online_incity'), output_field=models.DecimalField()), total_offline_outcity=ExpressionWrapper(F('total_offline')-F('total_offline_incity'), output_field=models.DecimalField()),
                                                                                                           nationality_count=Count(
-                                                                                                   'nationality')).order_by('nationality_id', 'month')
+                                                                                                   'nationality'), output_field=models.DecimalField()).order_by('nationality_id', 'month')
                             month_data = []
                             total_market_size = 0
                             expenditure_mode = 'total_subcategory_expense'

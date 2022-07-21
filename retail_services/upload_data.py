@@ -69,6 +69,7 @@ def expense_upload(request):
                         nationality_name = cell.value
                         nationality_obj = Nationality.objects.get(
                             nationality__iexact=nationality_name)
+                        print(nationality_name)
                         nationality_id = nationality_obj.id
                     if collid == 2:
                         household_member = cell.value
@@ -77,7 +78,7 @@ def expense_upload(request):
                         city_obj = City.objects.get(city__iexact=city)
                         city_id = city_obj.id
                     if collid == 4:
-                        zone = str(int(cell.value))
+                        zone = str(cell.value)
                         zone_id = Zone.objects.get(zone=zone, city=city_obj).id
                     if collid == 6:
                         monthly_income = cell.value
@@ -101,7 +102,7 @@ def expense_upload(request):
                                     re.escape('spent_online_category '), re.IGNORECASE)
                                 category_name = remove_header_tag.sub(
                                     '', spent_online_category_header)
-                                # print(category_name)
+                                print(category_name)
                                 category_name = category_name.lstrip()
                                 category_name = category_name.rstrip()
                                 category_id = Category.objects.get(
@@ -117,7 +118,7 @@ def expense_upload(request):
                                     re.escape('spent_online_sub_category '), re.IGNORECASE)
                                 sub_category_name = remove_header_tag.sub(
                                     '', spent_online_sub_category_header)
-                                # print(sub_category_name)
+                                print(sub_category_name)
                                 sub_category_name = sub_category_name.lstrip()
                                 sub_category_name = sub_category_name.rstrip()
                                 sub_category_id = SubCategory.objects.get(
@@ -133,7 +134,7 @@ def expense_upload(request):
                                     re.escape('spent_online_sub_sub_category '), re.IGNORECASE)
                                 sub_sub_category_name = remove_header_tag.sub(
                                     '', spent_online_sub_sub_category_header)
-                                # print(sub_sub_category_name)
+                                print(sub_sub_category_name)
                                 sub_sub_category_name = sub_sub_category_name.lstrip()
                                 sub_sub_category_name = sub_sub_category_name.rstrip()
                                 sub_sub_category_id = SubSubCategory.objects.get(
@@ -150,7 +151,7 @@ def expense_upload(request):
                                     re.escape('spent_incity_category '), re.IGNORECASE)
                                 category_name = remove_header_tag.sub(
                                     '', spent_incity_category_header)
-                                # print(category_name)
+                                print(category_name)
                                 category_name = category_name.lstrip()
                                 category_name = category_name.rstrip()
                                 category_id = Category.objects.get(
@@ -167,7 +168,7 @@ def expense_upload(request):
                                     re.escape('spent_incity_sub_category '), re.IGNORECASE)
                                 sub_category_name = remove_header_tag.sub(
                                     '', spent_incity_sub_category_header)
-                                # print(sub_category_name)
+                                print(sub_category_name)
                                 sub_category_name = sub_category_name.lstrip()
                                 sub_category_name = sub_category_name.rstrip()
                                 sub_category_id = SubCategory.objects.get(
@@ -183,7 +184,7 @@ def expense_upload(request):
                                     re.escape('spent_incity_sub_sub_category '), re.IGNORECASE)
                                 sub_sub_category_name = remove_header_tag.sub(
                                     '', spent_incity_sub_sub_category_header)
-                                # print(sub_sub_category_name)
+                                print(sub_sub_category_name)
                                 sub_sub_category_name = sub_sub_category_name.lstrip()
                                 sub_sub_category_name = sub_sub_category_name.rstrip()
                                 sub_sub_category_id = SubSubCategory.objects.get(
@@ -207,6 +208,7 @@ def expense_upload(request):
                                     '', category_header)
                                 category_name = category_name.lstrip()
                                 category_name = category_name.rstrip()
+                                print(category_name)
                                 category_id = Category.objects.get(
                                     name__iexact=category_name).id
                                 category_spent_online = 0
@@ -225,6 +227,7 @@ def expense_upload(request):
                                     '', sub_category_header)
                                 sub_category_name = sub_category_name.lstrip()
                                 sub_category_name = sub_category_name.rstrip()
+                                print(sub_category_name)
                                 subcategory = SubCategory.objects.get(
                                     name__iexact=sub_category_name, category_id=category_id)
                                 subcategory_data.append(
@@ -240,6 +243,7 @@ def expense_upload(request):
                                     '', sub_sub_category_header)
                                 sub_sub_category_name = sub_sub_category_name.lstrip()
                                 sub_sub_category_name = sub_sub_category_name.rstrip()
+                                print(sub_sub_category_name)
                                 subsubcategory = SubSubCategory.objects.get(
                                     name__iexact=sub_sub_category_name, sub_category_id=subcategory.id)
                                 subsubcategory_data.append(
